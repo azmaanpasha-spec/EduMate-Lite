@@ -1,0 +1,22 @@
+# Secrets
+.env
+backend/.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Local database
+*.db
+*.db-journal
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Local Claude/editor tooling
+.claude/
