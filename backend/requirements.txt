@@ -1,0 +1,16 @@
+# Web framework + server
+fastapi==0.162.5
+uvicorn[standard]==0.54.0
+pydantic==2.14.3
+pydantic-settings==2.16.2
+python-dotenv==1.2.4
+
+# Database
+SQLAlchemy==2.1.8
+
+# Google Gemini (official SDK)
+google-genai==3.2.0
+
+# Testing
+pytest==9.2.0
+httpx==0.28.1

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduMate Lite — Your Personal AI Study Assistant</title>
+  <meta name="description" content="EduMate Lite is an AI study assistant for college students." />
+  <link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+
+  <!-- Apply the saved theme before the page paints (prevents a flash) -->
+  <script>
+    try {
+      const saved = localStorage.getItem("edumate-theme");
+      if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
+    } catch (e) { /* storage unavailable: keep dark */ }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="app">
+    <!-- ======================= SIDEBAR ======================= -->
+    <aside class="sidebar" id="sidebar" aria-label="Sidebar">
+      <div class="sidebar-top">
+        <a class="brand" href="/" aria-label="EduMate Lite home">
+          <img src="assets/logo.svg" alt="" class="brand-logo" width="36" height="36" />
+          <div>
+            <div class="brand-name">EduMate <span>Lite</span></div>
+            <div class="brand-tag">AI Study Assistant</div>
+          </div>
+        </a>
+        <button class="icon-btn sidebar-close" id="sidebarClose" aria-label="Close sidebar"><i data-lucide="x"></i></button>
+      </div>
+
+      <button class="btn btn-primary new-chat-btn" id="newChatBtn">
+        <i data-lucide="plus"></i> New Chat
+      </button>
+
+      <nav class="tool-nav" aria-label="Tools">
+        <button class="tool-link active" data-view="chat"><i data-lucide="message-circle"></i> AI Chat</button>
+        <button class="tool-link" data-view="summarizer"><i data-lucide="file-text"></i> Summarizer</button>
+        <button class="tool-link" data-view="quiz"><i data-lucide="list-checks"></i> MCQ Quiz</button>
+      </nav>
+
+      <div class="history-head">
+        <span>Chat History</span>
+        <span class="history-count" id="historyCount">0</span>
+      </div>
+      <div class="history-list" id="historyList" role="list">
+        <!-- filled by chat.js -->
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="footer-btn" id="clearHistoryBtn"><i data-lucide="trash-2"></i> Clear History</button>
+        <button class="footer-btn" id="themeToggle" aria-label="Toggle theme">
+          <i data-lucide="sun" class="theme-icon-light"></i><i data-lucide="moon" class="theme-icon-dark"></i>
+          <span id="themeLabel">Light mode</span>
+        </button>
+        <div class="ai-status" id="aiStatus" title="AI status">
+          <span class="dot"></span><span class="ai-status-text">Checking AI…</span>
+        </div>
+      </div>
+    </aside>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ======================= MAIN ======================= -->
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open sidebar"><i data-lucide="menu"></i></button>
+        <div class="topbar-title" id="topbarTitle">New conversation</div>
+        <button class="icon-btn" id="topNewChat" aria-label="New chat" title="New chat"><i data-lucide="square-pen"></i></button>
+      </header>
+
+      <div class="config-banner hidden" id="configBanner" role="status">
+        <i data-lucide="key-round"></i>
+        <div>
+          <strong>AI is not configured yet.</strong>
+          Add <code>GEMINI_API_KEY</code> to <code>backend/.env</code> and restart the server. History and the interface still work.
+        </div>
+      </div>
+
+      <!-- ---------- CHAT VIEW ---------- -->
+      <section class="view view-chat active" id="view-chat">
+        <div class="chat-scroll" id="chatScroll">
+          <div class="welcome" id="welcome">
+            <div class="welcome-orb"><img src="assets/logo.svg" alt="" width="64" height="64" /></div>
+            <h1>Hey there! I'm <span class="grad-text">EduMate</span>.</h1>
+            <p>Your personal AI study assistant. Ask me anything, understand difficult topics and make learning easier.</p>
+            <div class="suggestions" id="suggestions">
+              <button class="suggestion" data-prompt="Explain quantum entanglement in simple terms, with an everyday analogy.">
+                <span class="s-icon c1"><i data-lucide="lightbulb"></i></span>
+                <span class="s-title">Explain a difficult topic</span>
+                <span class="s-sub">Quantum entanglement, simplified</span>
+              </button>
+              <button class="suggestion" data-action="summarizer">
+                <span class="s-icon c2"><i data-lucide="file-text"></i></span>
+                <span class="s-title">Summarize my study notes</span>
+                <span class="s-sub">Paste notes, get key points</span>
+              </button>
+              <button class="suggestion" data-action="quiz">
+                <span class="s-icon c3"><i data-lucide="list-checks"></i></span>
+                <span class="s-title">Generate practice MCQs</span>
+                <span class="s-sub">Test yourself on any topic</span>
+              </button>
+              <button class="suggestion" data-prompt="Explain recursion in programming step by step, with a simple Python example.">
+                <span class="s-icon c4"><i data-lucide="code-xml"></i></span>
+                <span class="s-title">Explain programming concepts</span>
+                <span class="s-sub">Recursion, step by step</span>
+              </button>
+              <button class="suggestion" data-prompt="My semester exams start in two weeks. Give me a practical study plan and proven exam preparation tips.">
+                <span class="s-icon c5"><i data-lucide="graduation-cap"></i></span>
+                <span class="s-title">Help me prepare for exams</span>
+                <span class="s-sub">A 2-week study plan</span>
+              </button>
+              <button class="suggestion" data-prompt="Give me real-life examples of Newton's third law of motion and explain each one.">
+                <span class="s-icon c6"><i data-lucide="globe"></i></span>
+                <span class="s-title">Give me a real-life example</span>
+                <span class="s-sub">Newton's third law in action</span>
+              </button>
+            </div>
+          </div>
+          <div class="messages" id="messages" aria-live="polite"></div>
+        </div>
+
+        <form class="composer" id="composer" autocomplete="off">
+          <div class="composer-box">
+            <textarea id="messageInput" rows="1" placeholder="Ask EduMate anything…" aria-label="Message" maxlength="4000"></textarea>
+            <button type="submit" class="send-btn" id="sendBtn" aria-label="Send message" disabled>
+              <i data-lucide="arrow-up" class="send-icon"></i>
+              <span class="spinner"></span>
+            </button>
+          </div>
+          <div class="composer-hint">
+            <span><kbd>Enter</kbd> to send · <kbd>Shift</kbd>+<kbd>Enter</kbd> for a new line</span>
+            <span id="charCount"></span>
+          </div>
+        </form>
+      </section>
+
+      <!-- ---------- SUMMARIZER VIEW ---------- -->
+      <section class="view view-tool" id="view-summarizer">
+        <div class="tool-wrap">
+          <div class="tool-header">
+            <span class="tool-badge c2"><i data-lucide="file-text"></i></span>
+            <div>
+              <h2>Text Summarizer</h2>
+              <p>Paste lecture notes, an article or a textbook section and get a clear summary.</p>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="field-head">
+              <label for="summaryInput">Your text</label>
+              <button type="button" class="link-btn" id="sampleTextBtn"><i data-lucide="sparkles"></i> Use sample text</button>
+            </div>
+            <textarea id="summaryInput" class="input textarea-lg" placeholder="Paste at least 20 words of study material here…" maxlength="20000"></textarea>
+            <div class="field-foot"><span id="summaryWordCount">0 words</span><span>Max 20,000 characters</span></div>
+
+            <div class="row-between">
+              <div class="segmented" role="radiogroup" aria-label="Summary length">
+                <input type="radio" name="summaryLength" id="lenShort" value="short" checked />
+                <label for="lenShort">Short</label>
+                <input type="radio" name="summaryLength" id="lenDetailed" value="detailed" />
+                <label for="lenDetailed">Detailed</label>
+              </div>
+              <button class="btn btn-primary" id="summarizeBtn" disabled>
+                <i data-lucide="wand-sparkles"></i><span>Summarize</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="card result-card hidden" id="summaryResult">
+            <div class="result-head">
+              <h3><i data-lucide="sparkles"></i> Summary</h3>
+              <div class="result-actions">
+                <span class="meta" id="summaryMeta"></span>
+                <button class="btn btn-ghost btn-sm" id="copySummaryBtn"><i data-lucide="copy"></i> Copy</button>
+              </div>
+            </div>
+            <div class="markdown" id="summaryOutput"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- QUIZ VIEW ---------- -->
+      <section class="view view-tool" id="view-quiz">
+        <div class="tool-wrap">
+          <div class="tool-header">
+            <span class="tool-badge c3"><i data-lucide="list-checks"></i></span>
+            <div>
+              <h2>MCQ Practice Quiz</h2>
+              <p>Generate multiple-choice questions on any topic and test your understanding.</p>
+            </div>
+          </div>
+
+          <!-- Step 1: setup -->
+          <form class="card" id="quizSetup">
+            <div class="grid-2">
+              <div class="field">
+                <label for="quizSubject">Subject</label>
+                <input id="quizSubject" class="input" placeholder="e.g. Computer Science" maxlength="100" required />
+              </div>
+              <div class="field">
+                <label for="quizTopic">Topic</label>
+                <input id="quizTopic" class="input" placeholder="e.g. Operating system scheduling" maxlength="200" required />
+              </div>
+            </div>
+            <div class="grid-2">
+              <div class="field">
+                <span class="label">Number of questions</span>
+                <div class="segmented" role="radiogroup" aria-label="Number of questions">
+                  <input type="radio" name="quizCount" id="count5" value="5" checked /><label for="count5">5</label>
+                  <input type="radio" name="quizCount" id="count10" value="10" /><label for="count10">10</label>
+                </div>
+              </div>
+              <div class="field">
+                <span class="label">Difficulty</span>
+                <div class="segmented" role="radiogroup" aria-label="Difficulty">
+                  <input type="radio" name="quizDifficulty" id="diffEasy" value="easy" /><label for="diffEasy">Easy</label>
+                  <input type="radio" name="quizDifficulty" id="diffMedium" value="medium" checked /><label for="diffMedium">Medium</label>
+                  <input type="radio" name="quizDifficulty" id="diffHard" value="hard" /><label for="diffHard">Hard</label>
+                </div>
+              </div>
+            </div>
+            <div class="row-end">
+              <button type="submit" class="btn btn-primary" id="generateQuizBtn">
+                <i data-lucide="sparkles"></i><span>Generate Quiz</span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Step 2: taking the quiz -->
+          <div class="card quiz-card hidden" id="quizPlay">
+            <div class="quiz-top">
+              <div class="quiz-info" id="quizInfo"></div>
+              <div class="quiz-progress-text" id="quizProgressText"></div>
+            </div>
+            <div class="progress"><div class="progress-bar" id="quizProgressBar"></div></div>
+            <div class="quiz-dots" id="quizDots"></div>
+            <h3 class="quiz-question" id="quizQuestion"></h3>
+            <div class="quiz-options" id="quizOptions" role="radiogroup"></div>
+            <div class="quiz-nav">
+              <button class="btn btn-ghost" id="prevQuestionBtn"><i data-lucide="chevron-left"></i> Previous</button>
+              <div class="quiz-nav-right">
+                <button class="btn btn-ghost" id="nextQuestionBtn">Next <i data-lucide="chevron-right"></i></button>
+                <button class="btn btn-success" id="submitQuizBtn"><i data-lucide="check-check"></i><span>Submit Quiz</span></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: results -->
+          <div class="hidden" id="quizResults">
+            <div class="card score-card">
+              <div class="score-ring" id="scoreRing"><span id="scorePercent">0%</span></div>
+              <div class="score-body">
+                <h3 id="scoreHeadline">Quiz complete!</h3>
+                <p class="meta" id="scoreTopic"></p>
+                <div class="stats">
+                  <div class="stat"><span class="stat-num" id="statTotal">0</span><span class="stat-label">Total</span></div>
+                  <div class="stat ok"><span class="stat-num" id="statCorrect">0</span><span class="stat-label">Correct</span></div>
+                  <div class="stat bad"><span class="stat-num" id="statIncorrect">0</span><span class="stat-label">Incorrect</span></div>
+                  <div class="stat"><span class="stat-num" id="statPercent">0%</span><span class="stat-label">Score</span></div>
+                </div>
+                <div class="row-start">
+                  <button class="btn btn-primary" id="retakeQuizBtn"><i data-lucide="rotate-ccw"></i> New quiz, same topic</button>
+                  <button class="btn btn-ghost" id="newQuizBtn"><i data-lucide="settings-2"></i> Change topic</button>
+                </div>
+              </div>
+            </div>
+            <h3 class="section-title">Answers &amp; explanations</h3>
+            <div class="review-list" id="reviewList"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Confirmation dialog -->
+  <div class="modal hidden" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+    <div class="modal-card">
+      <div class="modal-icon"><i data-lucide="triangle-alert"></i></div>
+      <h3 id="confirmTitle">Are you sure?</h3>
+      <p id="confirmText"></p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="confirmCancel">Cancel</button>
+        <button class="btn btn-danger" id="confirmOk">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
