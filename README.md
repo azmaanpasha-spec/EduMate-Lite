@@ -108,6 +108,7 @@ EduMate-Lite/
 │   └── assets/logo.svg
 ├── .env.example
 ├── .gitignore
+├── setup.bat                  # one-time setup on a new computer
 ├── run.bat                    # one-click start on Windows
 └── README.md
 ```
@@ -115,6 +116,14 @@ EduMate-Lite/
 ## 9. Installation (Windows)
 
 Requirements: **Python 3.12** ([python.org](https://www.python.org/downloads/)). Tick "Add Python to PATH" during installation.
+
+### Quick setup (recommended)
+
+1. Download the project: on GitHub click **Code → Download ZIP** and extract it, or run `git clone https://github.com/azmaanpasha-spec/EduMate-Lite.git`.
+2. Double-click **`setup.bat`**. It creates the virtual environment, installs the packages and opens `backend\.env` in Notepad; paste your Gemini API key after `GEMINI_API_KEY=` and save.
+3. Double-click **`run.bat`** and open http://127.0.0.1:8000.
+
+### Manual setup
 
 Open **Command Prompt** in the `EduMate-Lite` folder and run:
 
